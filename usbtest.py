@@ -37,8 +37,13 @@ def rx_handler(data):
     # clear = lambda: os.system('clear')
     # clear()
 
-    ps4raport['L3'] = {'x': data[1], 'y': data[2]}
-    ps4raport['R3'] = {'x': data[3], 'y': data[4]}
+    ps4raport['analog'] = {}
+    ps4raport['analog']['L2'] = data[8]
+    ps4raport['analog']['R2'] = data[9]
+
+    ps4raport['joystick'] = {}
+    ps4raport['joystick']['L3'] = {'x': data[1], 'y': data[2]}
+    ps4raport['joystick']['R3'] = {'x': data[3], 'y': data[4]}
 
     
 
@@ -101,47 +106,25 @@ def findHIDDevice(mbed_vendor_id, mbed_product_id):
             rx_handler(bytes);
 
             print ps4raport
+            # print ps4raport['buttons']
+            # print ps4raport['acceleration']
+
+            data = bytearray(32)
+            data[0] = 05
+            data[1] = 255
+
+            data[4] = ps4raport['analog']['R2']
+            data[5] = ps4raport['analog']['L2']
+
+            data[6] = ps4raport['analog']['L2']
+            data[7] = ps4raport['joystick']['L3']['x']
+            data[8] = ps4raport['analog']['R2']
             
-            pkt = bytearray(31)
-            pkt[0] = 255
-            offset = 0
-            report_id = 0x05
+            data[9] = 0
+            data[10] = 0
+            
+            hid_device.write(3, data)
 
-            small_rumble = 0
-            big_rumble = 0
-
-            led_red = 0
-            led_green = 10
-            led_blue = 255
-
-            flash_led1 = 0
-            flash_led2 = 0
-
-            # Rumble
-            pkt[offset+3] = 0
-            pkt[offset+4] = 0
-
-            # LED (red, green, blue)
-            pkt[offset+5] = 255
-            pkt[offset+6] = 0
-            pkt[offset+7] = 0
-
-            # Time to flash bright (255 = 2.5 seconds)
-            pkt[offset+8] = 0
-
-            # Time to flash dark (255 = 2.5 seconds)
-            pkt[offset+9] = 0
-
-
-            # hid_device.write(report_id, pkt)
-            # hid_device.write(report_id, '\x10')
-            # hid_device.write(report_id, 'There are in the system.')
-
-            # for i in range(8):
-                # data[i] = bytes[i]
-                # data[i+8] = random.randint(0, 255)
-            # hid_device.write(1, data)
- 
 if __name__ == '__main__':
     # The vendor ID and product ID used in the Mbed program
     mbed_vendor_id = 0x1234 
@@ -150,6 +133,3 @@ if __name__ == '__main__':
     # Search the Mbed, attach rx handler and send data
     # findHIDDevice(mbed_vendor_id, mbed_product_id)
     findHIDDevice(0x054c, 0x05c4)
-
-    # c = dict(zip(['one', 'two', 'three'], [1, 2, 3]))
-    # print c
