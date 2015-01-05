@@ -9,7 +9,7 @@
 //Define
 #define USB_VENDOR 0x054c
 #define USB_PRODUCT 0x05c4
-#define TIMEOUT (5*1000)
+#define TIMEOUT (3*1000)
 #define EP6	0x05
  
 /* Init USB */
@@ -153,7 +153,7 @@ main()
   	for (j=0; j<250; j++) {
     	// read data
 	    static unsigned char buf[64];
-	    i = usb_bulk_read(dh, 0x04, buf, 64, 5);
+	    i = usb_bulk_read(dh, 0x04, buf, 64, TIMEOUT);
 	    
 	    // UWAGA: bufor mniejszy od 64 znakówe nie ma sensu ze względu na sposób transmisji ...
 	    if (i==64) {
@@ -166,26 +166,7 @@ main()
 	    }
 	}
 
+	USB_close(dh);
+	printf("USB End\n");
 	return 0;
-
-	// printf("%i\n", sizeof(buf));
-	// printf("%d\n", ret);
-	return 0;
-
-	ret = usb_bulk_read(dh,EP6, buf, sizeof(buf), TIMEOUT);
-	if(ret<0){
-		// fprintf(stderr,"usb_bulk_read() failed? buf(%d) usb(%d)\n", sizeof(buf), ret);
-		fprintf(stderr,"usb_bulk_read error.(%s)\n",usb_strerror());
-		// USB_close(dh);
-		printf("---\n");
-		return 1;
-	}
-	printf("usb_bulk_read() finished\n");
-	fwrite(buf, 1, sizeof(buf), stdout);
- 	return 0;
-
-	// USB_close(dh);
-	// printf("USB End\n");
-	// return 0;
-
 }
