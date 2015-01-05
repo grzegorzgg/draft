@@ -122,41 +122,35 @@ main()
 		Put command here
 	*/
 	printf("Start Read data from EP6\n");
-	// USB_altinterface(dh,1);
 	if (usb_claim_interface(dh, 0)) {
 		printf("\n\n%s\n\n", usb_strerror());
 		printf("---------\n");
-	} else {
-		printf("2222\n");
 	}
 
 	if (usb_control_msg(dh, 0x40, 0, 0, 0, NULL, 0, 3000) != 0)
     	puts("błąd resetu układu");
 
+    
+    char data[32];
+    memset(data, 0, 32);
 
-    char * aaa[32];
+    data[0] = 05;
+    data[1] = 255;
 
-    memset(aaa, 0, 32);
+    data[4] = 0;		// RIGHT
+    data[5] = 0;		// LEFT
 
-    aaa[0] = 05;
-    aaa[1] = 255;
-    aaa[4] = 100;
+    data[6] = 25;	// RED
+    data[7] = 30;	// GREEN
+    data[8] = 20;	// BLUE
 
-
-	int t;
-	for (t=0; t<2; t++) {
-		printf("Wysłano: %d\n", usb_bulk_write(dh, 0x02, aaa, 3, 3000));
-		// UWAGA: wysyłana porcja danych nie może być zbyt duża !!!
-		sleep(1);
-	}
-
-	printf("xxxxxxxxx99xxxxxxxxx\n");
-	return -1;
+	printf("Wysłano: %d\n", usb_bulk_write(dh, 0x03, data, 32, 3000));
+	
 
     puts("Czekam na dane wejściowe");
   	
   	int i, j, k;
-  	for (j=0; j<100; j++) {
+  	for (j=0; j<250; j++) {
     	// read data
 	    static unsigned char buf[64];
 	    i = usb_bulk_read(dh, 0x04, buf, 64, 5);
@@ -171,8 +165,6 @@ main()
 	      j--;
 	    }
 	}
-
-	printf("xxxxxxxxx22xxxxxxxxx\n");
 
 	return 0;
 
