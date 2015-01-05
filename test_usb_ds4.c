@@ -1,5 +1,5 @@
-//gcc -o test_ez_read test_ez_read.c -lusb
- 
+//gcc -o test_usb_ds4 test_usb_ds4.c -lusb && sudo ./test_usb_ds4
+
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
