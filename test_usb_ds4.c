@@ -1,4 +1,5 @@
 //gcc -o test_usb_ds4 test_usb_ds4.c -lusb && sudo ./test_usb_ds4
+// http://www.psdevwiki.com/ps4/DS4-USB
 
 #include <string.h>
 #include <errno.h>
@@ -87,9 +88,105 @@ void USB_altinterface(struct usb_dev_handle *dh,int tyep)
 		USB_close(dh);
 	}
 }
- 
+
+
+enum ds4pad {
+	DS4_L1X,
+	DS4_L1Y,
+	DS4_R1X,
+	DS4_R1Y,
+
+	DS4_L2,
+	DS4_R2,
+	
+	DS4_BATTERYLEVEL,
+
+	DS4_CROSS,
+	DS4_CIRCLE,
+	DS4_SQUARE,
+	DS4_TRIANGLE,
+
+
+};
+
+typedef struct {
+	uint8_t L1_x;
+	uint8_t L1_y;
+	uint8_t R1_x;
+	uint8_t R1_y;
+
+	uint8_t L2_analog;
+	uint8_t R2_analog;
+
+	uint8_t batteryLevel;
+
+	char cross;
+	char circle;
+	char square;
+	char triangle;
+
+	char SHARE;
+	char OPTIONS;
+	
+	char L1;
+	char R1;
+
+	char L2;
+	char R2;
+
+	char L3;
+	char R3;
+
+	char PS;
+	char PAD;
+
+} ds4pad;
+
+ds4pad pad1;
+
+
+void rx_handler(char *data)
+{
+
+
+	pad1.L1_x = data[1];
+	pad1.L1_y = data[2];
+
+	pad1.R1_x = data[3];
+	pad1.R1_y = data[4];
+	
+	pad1.L2_analog = data[8];
+	pad1.R2_analog = data[9];
+
+	pad1.batteryLevel = data[12];
+
+	pad1.square = ( data[5] & 16 ) != 0;
+	pad1.cross = ( data[5] & 32 ) != 0;
+	pad1.circle = ( data[5] & 64 ) != 0;
+	pad1.triangle = ( data[5] & 128 ) != 0;
+
+	pad1.SHARE = ( data[6] & 16 ) != 0;
+	pad1.OPTIONS = ( data[6] & 32 ) != 0;
+	pad1.L3 = ( data[6] & 64 ) != 0;
+	pad1.R3 = ( data[6] & 128 ) != 0;
+
+	pad1.L1 = (data[6] & 1) != 0;
+	pad1.R1 = (data[6] & 2) != 0;
+	pad1.L2 = (data[6] & 4) != 0;
+	pad1.R2 = (data[6] & 8) != 0;
+
+	pad1.PS = (data[7] & 1) != 0;
+	pad1.PAD = (data[7] & 2) != 0;
+
+}
+
+
+
 main()
 {
+
+	
+
 	struct usb_bus *bus;
 	struct usb_device *dev;
 	usb_dev_handle *dh;
@@ -149,22 +246,42 @@ main()
 
     puts("Czekam na dane wejściowe");
   	
-  	int i, j, k;
-  	for (j=0; j<250; j++) {
-    	// read data
-	    static unsigned char buf[64];
+
+    int i;
+    while (1) {
+    	static unsigned char buf[64];
 	    i = usb_bulk_read(dh, 0x04, buf, 64, TIMEOUT);
-	    
-	    // UWAGA: bufor mniejszy od 64 znakówe nie ma sensu ze względu na sposób transmisji ...
+
 	    if (i==64) {
-	      printf("j = %d : ", j);
-	      for (k=0; k<i; k++)
-	        printf("%X ", buf[k]);
-	      puts("");
-	    } else {
-	      j--;
+	    	rx_handler(buf); 
+	    	// printf("%i\n", pad1.R1_x);
 	    }
-	}
+    }
+
+
+ //  	int i, j, k;
+ //  	for (j=0; j<15; j++) {
+ //    	// read data
+	//     static unsigned char buf[64];
+	//     i = usb_bulk_read(dh, 0x04, buf, 64, TIMEOUT);
+	    
+	//     // UWAGA: bufor mniejszy od 64 znakówe nie ma sensu ze względu na sposób transmisji ...
+	//     if (i==64) {
+	// 		// printf("j = %d : ", j);
+
+	//     	rx_handler(buf);
+
+	// 		for (k=0; k<i; k++) {
+	// 			// printf("%X ", buf[k]);
+	// 		}
+			
+
+	// 		puts(" ");
+
+	//     } else {
+	// 		j--;
+	//     }
+	// }
 
 	USB_close(dh);
 	printf("USB End\n");
